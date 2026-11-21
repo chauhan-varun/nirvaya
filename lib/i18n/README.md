@@ -1,0 +1,11 @@
+# English-first localization boundary
+
+English is the primary/default UI and content language. `languages.ts` defines English + India's 22 Eighth Schedule languages; this is a selector coverage target, **not** a claim to cover every language spoken in India. `Locale` is derived from this registry and re-exported by shared contracts.
+
+`use-language-preference.ts` is a small client-only external-store hook, not a whole-app provider. It stores only a validated language code in localStorage, synchronizes selectors, and falls back to session memory if browser storage is unavailable. The server snapshot is always English so public pages remain statically renderable. No health data is stored, read or transmitted. A preference does not change document language/direction: actual content is still English.
+
+`LanguageSelector` uses the existing shadcn NativeSelect. All 23 preferences can be chosen; an explicit message explains that translated content is not yet connected. There is no translation request, provider, translated dictionary, microphone access, or automatic health-data translation. `getContentLocale` deliberately returns English until reviewed content exists.
+
+## Next translation task
+
+> When the user requests a particular translation, introduce keyed English source messages and that locale's reviewed dictionary using a library compatible with App Router (prefer next-intl when full routing/server translation is needed). Preserve English as the default and fallback. Do not rewrite the whole app as a client component or change public pages to request-time rendering merely to read a preference. Support the actual selected script and direction, not a language-name guess; Kashmiri, Sindhi and Manipuri may need explicit script variants. Only change lang/dir for content actually translated. Label missing messages with truthful fallback behavior. Clinical, consent and safety text require qualified per-locale review; do not silently send health content to an external translation service. STT/TTS capabilities and supported locales are separate provider checks, not implied by UI language choices. Expand beyond the 22 scheduled languages when a specific additional language is requested.

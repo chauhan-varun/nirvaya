@@ -37,3 +37,7 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Commit only the blank configuration template.
+!.env.example
+.clerk/
