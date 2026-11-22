@@ -9,6 +9,7 @@ Clerk Next.js SDK (`@clerk/nextjs` v7 / Core 3) is installed and configured with
    - Replaced legacy `middleware.ts` with Next.js 16 `proxy.ts`.
    - Uses bare `export default clerkMiddleware()` in accordance with Clerk Core 3 guidance (avoiding deprecated `createRouteMatcher`).
    - Matcher config excludes Next.js static assets and explicitly includes `/(api|trpc)(.*)` so `auth()` receives session context across all application endpoints.
+   - Explicitly includes `/__clerk(.*)` so Clerk's automatic production proxy on `*.vercel.app` handles its JavaScript assets instead of skipping them as static files. Redeploy after changing the matcher; verify Clerk script requests return HTTP 200 in the browser Network tab.
 
 2. **Resource-based route protection**:
    - Each protected resource enforces its own authentication:
@@ -38,4 +39,4 @@ Clerk Next.js SDK (`@clerk/nextjs` v7 / Core 3) is installed and configured with
 - [ ] Clerk webhook signature deduplication and user deletion sync (blocked on database/events task).
 
 ## Test evidence
-- `tests/auth/proxy.test.ts`: Automated tests verifying bare `clerkMiddleware()`, matcher configuration, and avoidance of deprecated `createRouteMatcher`.
+- `tests/auth/proxy.test.ts`: Automated tests verifying bare `clerkMiddleware()`, matcher configuration, Clerk proxy script/API matching, ordinary static-asset exclusions, and avoidance of deprecated `createRouteMatcher`.

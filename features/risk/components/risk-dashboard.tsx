@@ -40,6 +40,7 @@ import { format, formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
 import { OrganImpactView } from "./organ-impact-view"
 import { CareJourneyGuide } from "./care-journey-guide"
+import { PreventionPlanCard } from "@/features/prevention/components/prevention-plan-card"
 import { VoiceRiskIntake } from "./voice-risk-intake"
 import {
   type ParsedRiskIntakeValues,
@@ -47,16 +48,18 @@ import {
 } from "@/lib/voice/risk-intake-parser"
 import { speakText, stopSpeaking, isSpeaking } from "@/lib/voice/speech-synthesis"
 
+
 export function RiskDashboard() {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   const [activeTab, setActiveTab] = React.useState<
-    "assessment" | "organs" | "lab_guide"
+    "assessment" | "organs" | "lab_guide" | "prevention_plan"
   >("assessment")
 
   const latestQuery = useQuery(trpc.risk.latest.queryOptions())
   const historyQuery = useQuery(trpc.risk.history.queryOptions({ limit: 5 }))
+  const journalQuery = useQuery(trpc.journal.list.queryOptions({ limit: 50 }))
 
   const [isAssessing, setIsAssessing] = React.useState(false)
 
@@ -249,7 +252,26 @@ export function RiskDashboard() {
           <ShieldCheck className="size-4" />
           <span>Lab Test Guide & Questions</span>
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("prevention_plan")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
+            activeTab === "prevention_plan"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Sparkles className="size-4" />
+          <span>Lifestyle Prevention Plan</span>
+        </button>
       </div>
+
+      {activeTab === "prevention_plan" && (
+        <PreventionPlanCard
+          observations={journalQuery.data?.observations ?? []}
+        />
+      )}
 
       {activeTab === "organs" && <OrganImpactView />}
 
@@ -717,6 +739,32 @@ export function RiskDashboard() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Actionable Prevention Plan Bridge */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-primary/30 bg-primary/5 p-5 shadow-sm">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="border-primary/40 bg-primary/10 text-primary text-[11px]">
+                  Next Step: Lifestyle Action
+                </Badge>
+                <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  Up to 58% Risk Reduction
+                </span>
+              </div>
+              <h4 className="text-base font-bold text-foreground flex items-center gap-2">
+                <Sparkles className="size-4 text-primary" /> Active Diabetes Prevention & Lifestyle Plan
+              </h4>
+              <p className="text-xs text-muted-foreground max-w-xl">
+                Translate this screening result into measurable daily habits (15-min post-meal walking, fiber-first food pacing, and 150 min weekly movement).
+              </p>
+            </div>
+            <Button
+              onClick={() => setActiveTab("prevention_plan")}
+              className="gap-2 shrink-0"
+            >
+              Open Prevention Plan <ArrowRight className="size-4" />
+            </Button>
+          </div>
 
           {/* Assessment History */}
           {historyQuery.data && historyQuery.data.entries.length > 1 && (

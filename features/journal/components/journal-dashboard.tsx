@@ -48,6 +48,7 @@ import {
 } from "lucide-react"
 import { LabReportScanner } from "./lab-report-scanner"
 import { VoiceJournalLogger } from "./voice-journal-logger"
+import { PreventionPlanCard } from "@/features/prevention/components/prevention-plan-card"
 
 export function JournalDashboard() {
   const trpc = useTRPC()
@@ -291,6 +292,19 @@ export function JournalDashboard() {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Dynamic Evidence-Based Diabetes Risk Reduction & Lifestyle Prevention Plan */}
+      <PreventionPlanCard
+        observations={recentObservations}
+        onSelectJournalTab={(tab, defaultMinutes) => {
+          setActiveTab(tab)
+          if (tab === "activity" && defaultMinutes) {
+            setActivityType("walking")
+            setActivityMinutes(defaultMinutes)
+            setActivityNotes("Post-meal walk (GLUT4 muscle activation)")
+          }
+        }}
+      />
 
       {/* Logging Forms Panel */}
       <Card>
