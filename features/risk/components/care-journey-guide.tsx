@@ -4,15 +4,20 @@ import * as React from "react"
 import {
   CheckCircle2,
   CheckSquare,
+  ChevronDown,
+  ChevronUp,
   ClipboardList,
   FileText,
   HelpCircle,
   Info,
+  Scan,
   ShieldCheck,
   Stethoscope,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { LabReportScanner } from "@/features/journal/components/lab-report-scanner"
 
 interface LabRange {
   name: string
@@ -86,6 +91,7 @@ const DOCTOR_QUESTIONS = [
 
 export function CareJourneyGuide() {
   const [checkedQuestions, setCheckedQuestions] = React.useState<Record<string, boolean>>({})
+  const [showScanner, setShowScanner] = React.useState(false)
 
   const toggleQuestion = (id: string) => {
     setCheckedQuestions((prev) => ({
@@ -111,6 +117,44 @@ export function CareJourneyGuide() {
           metabolic conditions.
         </p>
       </div>
+
+      {/* OCR Scanner Toggle Banner */}
+      <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+            <Scan className="size-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-foreground">
+              Have a printed or digital lab report?
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Scan your report image (HbA1c, Fasting, Postprandial glucose) to extract and save readings automatically.
+            </p>
+          </div>
+        </div>
+
+        <Button
+          size="sm"
+          onClick={() => setShowScanner(!showScanner)}
+          variant={showScanner ? "outline" : "default"}
+          className="gap-2 shrink-0"
+        >
+          {showScanner ? (
+            <>
+              <ChevronUp className="size-4" /> Close Scanner
+            </>
+          ) : (
+            <>
+              <Scan className="size-4" /> Open Lab Scanner
+            </>
+          )}
+        </Button>
+      </div>
+
+      {showScanner && (
+        <LabReportScanner />
+      )}
 
       {/* Confirmatory Lab Test Guide */}
       <div className="space-y-4">

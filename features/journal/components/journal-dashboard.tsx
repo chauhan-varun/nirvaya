@@ -42,8 +42,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  Scan,
   ShieldAlert,
 } from "lucide-react"
+import { LabReportScanner } from "./lab-report-scanner"
 
 export function JournalDashboard() {
   const trpc = useTRPC()
@@ -304,7 +306,7 @@ export function JournalDashboard() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4 grid grid-cols-3 md:grid-cols-6 w-full">
+            <TabsList className="mb-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 w-full h-auto gap-1">
               <TabsTrigger value="glucose" className="gap-1.5 text-xs">
                 <HeartPulse className="size-3.5" /> Glucose
               </TabsTrigger>
@@ -322,6 +324,9 @@ export function JournalDashboard() {
               </TabsTrigger>
               <TabsTrigger value="medication" className="gap-1.5 text-xs">
                 <Pill className="size-3.5" /> Medicines
+              </TabsTrigger>
+              <TabsTrigger value="ocr" className="gap-1.5 text-xs bg-primary/10 text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold">
+                <Scan className="size-3.5" /> Scan Report (OCR)
               </TabsTrigger>
             </TabsList>
 
@@ -771,6 +776,16 @@ export function JournalDashboard() {
                   </Button>
                 </div>
               </form>
+            </TabsContent>
+
+            {/* 7. OCR Scan Tab */}
+            <TabsContent value="ocr">
+              <LabReportScanner
+                onSaved={() => {
+                  setSuccessMessage("Lab report measurements saved to your journal successfully.")
+                  observationsQuery.refetch()
+                }}
+              />
             </TabsContent>
           </Tabs>
         </CardContent>
