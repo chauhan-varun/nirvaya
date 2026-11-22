@@ -34,10 +34,16 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { format, formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
+import { OrganImpactView } from "./organ-impact-view"
+import { CareJourneyGuide } from "./care-journey-guide"
 
 export function RiskDashboard() {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
+
+  const [activeTab, setActiveTab] = React.useState<
+    "assessment" | "organs" | "lab_guide"
+  >("assessment")
 
   const latestQuery = useQuery(trpc.risk.latest.queryOptions())
   const historyQuery = useQuery(trpc.risk.history.queryOptions({ limit: 5 }))
@@ -108,7 +114,10 @@ export function RiskDashboard() {
         </div>
 
         <Button
-          onClick={() => setIsAssessing(!isAssessing)}
+          onClick={() => {
+            setActiveTab("assessment")
+            setIsAssessing(!isAssessing)
+          }}
           variant={isAssessing ? "outline" : "default"}
           className="gap-2 shrink-0"
         >
@@ -124,7 +133,56 @@ export function RiskDashboard() {
         </Button>
       </div>
 
-      {/* Assessment Form Modal / Accordion */}
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-border/60">
+        <button
+          type="button"
+          onClick={() => setActiveTab("assessment")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
+            activeTab === "assessment"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <Activity className="size-4" />
+          <span>Screening Assessment</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("organs")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
+            activeTab === "organs"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <HeartPulse className="size-4" />
+          <span>Body & Organ Impact</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("lab_guide")}
+          className={cn(
+            "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
+            activeTab === "lab_guide"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <ShieldCheck className="size-4" />
+          <span>Lab Test Guide & Questions</span>
+        </button>
+      </div>
+
+      {activeTab === "organs" && <OrganImpactView />}
+
+      {activeTab === "lab_guide" && <CareJourneyGuide />}
+
+      {activeTab === "assessment" && (
+        <>
+          {/* Assessment Form Modal / Accordion */}
       {isAssessing && (
         <Card className="border-primary/30 bg-card shadow-md">
           <CardHeader className="pb-4">
@@ -534,6 +592,8 @@ export function RiskDashboard() {
             </Card>
           )}
         </div>
+      )}
+        </>
       )}
     </div>
   )
