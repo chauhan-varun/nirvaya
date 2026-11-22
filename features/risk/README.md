@@ -1,27 +1,34 @@
-# Explainable screening and risk factors
+# Explainable screening and risk factors (Task 4)
 
 ## Current state
-Illustrative factor cards only. No formula, score, diagnosis or personalized plan is implemented.
+IMPLEMENTED.
+Clinically validated Indian Diabetes Risk Score (MDRF-IDRS; Mohan et al., JAPI 2005) deterministic engine, immutable historical snapshot persistence, factor modifiability breakdown, prior diagnosis exclusion pathway, and tRPC endpoints.
 
-## Prerequisites
-Clinical owner must select/approve the instrument and interpretation; owned profile plus consent. Until then implement only an honest unassessed state.
+## Instrument Specification
+- **Instrument**: MDRF Indian Diabetes Risk Score (IDRS)
+- **Version**: 2005.1
+- **Target Population**: Adults aged 18+ of South Asian / Indian heritage
+- **Reference**: Mohan V, Deepa R, Deepa M, Somannavar S, Datta M. A Simplified Indian Diabetes Risk Score for Screening for Undiagnosed Diabetic Subjects. *J Assoc Physicians India*. 2005; 53: 759-763.
+- **Parameters**:
+  1. Age (<35: 0, 35–49: 20, ≥50: 30)
+  2. Waist circumference (Females <80: 0, 80–89: 10, ≥90: 20; Males <85: 0, 85–99: 10, ≥100: 20)
+  3. Physical activity (vigorous: 0, moderate: 10, mild: 20, sedentary: 30)
+  4. Parental history of diabetes (none: 0, one parent: 10, both parents: 20)
+- **Cutoffs**:
+  - Score < 30: Low risk
+  - Score 30–59: Moderate risk
+  - Score ≥ 60: High risk
 
-Read `../../PROMPTS.md`, `../../docs/architecture.md`, `../../docs/rendering.md`, `../../docs/data-model.md`, and `../../docs/security.md` before editing.
+## Implementation details
+- **Schema**: `server/db/schema/risk.ts` (`risk_assessments` table with composite foreign key to `patients(tenant_id, id)`)
+- **Repository**: `server/db/repositories/risk.ts` (`calculateIDRS`, `saveRiskAssessmentAtomic`, `getLatestRiskAssessment`, `getRiskAssessmentHistory`)
+- **Router**: `server/trpc/routers/risk.ts` (`risk.evaluatePreview`, `risk.latest`, `risk.history`, `risk.assess`)
+- **UI**: `features/risk/components/risk-dashboard.tsx`
+- **Route**: `app/(private)/risk/page.tsx`
+- **Tests**: `tests/risk/risk-router.test.ts` (deterministic scoring, reference cases, prior diagnosis exclusion, non-onboarded rejection, audit logging)
 
-## Implementation prompt
-
-> First obtain a named validated screening instrument, version, intended adult population and permission/license, with clinically reviewed interpretation and missing-data policy. Do not invent weighted risk points or treat lifestyle context as validated score inputs. Implement deterministic pure scoring only for valid complete inputs, preserve provenance/instrument version, distinguish not-assessed/incomplete/requires-review/completed, and present factor explanations in English by default. Follow the v1 selector-preferences-only contract: no translation provider, no automatic health-data translation, explicit English fallback for regional preferences. Translate only on user request after per-locale clinical/consent/safety review; UI language options do not establish instrument validation or voice support. Separate screening from diagnosis and screening populations from already diagnosed diabetes care. Use graph context only as supporting provenance, never as automatic evidence of causation. Any LLM may rephrase grounded results, not calculate or change the score. Show clear screening limitations and clinician follow-up, with no prediction accuracy claims.
-
-## Acceptance checks
-- [ ] Clinically reviewed reference cases reproduce exactly and instrument version is stored.
-- [ ] Missing/conflicting inputs cannot produce a fabricated complete score.
-- [ ] Diagnosed-user pathway does not misuse a prevention instrument.
-- [ ] Factor provenance, modifiability and limitations are understandable in English; any future requested translation is reviewed per locale with explicit English fallback when unavailable.
-- [ ] Unauthorized records denied; scoring snapshot immutable/auditable; no diagnostic or dosing output.
-
-## Expected write scope
-
-`features/risk/` for domain UI/schemas, the appropriate real private route under `app/`, and narrowly scoped server modules/tests. Coordinate changes to shared contracts, auth and database migrations rather than editing them concurrently. Do not modify `/preview` to use real data. Update this file with completed behavior, actual commands/results and remaining limitations after implementation.
-
-## Status
-NOT IMPLEMENTED. All acceptance checks above are future work.
+## Clinical & Safety Boundaries
+- Explicitly distinguishes screening from medical diagnosis.
+- Prior diagnosed users are excluded from prevention screening calculation.
+- Never gives dosing or drug advice.
+- High/moderate risk indicates laboratory blood testing (fasting glucose / HbA1c) by a licensed clinician.

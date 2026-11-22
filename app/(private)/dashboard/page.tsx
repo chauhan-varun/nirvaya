@@ -19,10 +19,7 @@ import { buttonVariants } from "@/components/ui/button"
 import Link from "next/link"
 import { JournalDashboard } from "@/features/journal/components/journal-dashboard"
 import {
-  ShieldCheck,
   HeartPulse,
-  Database,
-  Activity,
   UserCheck,
   ArrowRight,
   AlertCircle,
@@ -33,7 +30,6 @@ export const dynamic = "force-dynamic"
 export default async function DashboardPage() {
   await auth.protect()
   const trpc = await createCaller()
-  const identity = await trpc.auth.me()
   const onboarding = await trpc.onboarding.status()
 
   return (
@@ -42,12 +38,6 @@ export default async function DashboardPage() {
         <h1 className="font-heading text-2xl font-bold tracking-tight">
           Personal health dashboard
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Authenticated as{" "}
-          <span className="font-mono text-xs font-semibold text-foreground">
-            {identity.subject}
-          </span>
-        </p>
       </div>
 
       {!onboarding.completed ? (
@@ -92,71 +82,7 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card size="sm">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-primary">
-              <ShieldCheck className="size-4" />
-              <CardTitle className="text-xs tracking-wider uppercase">
-                Identity status
-              </CardTitle>
-            </div>
-            <CardDescription>Clerk verified session</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-1 text-xs text-muted-foreground">
-            <p>
-              Subject:{" "}
-              <span className="font-mono text-foreground">
-                {identity.subject}
-              </span>
-            </p>
-            {identity.sessionId && (
-              <p>
-                Session ID:{" "}
-                <span className="font-mono text-foreground">
-                  {identity.sessionId.slice(0, 12)}...
-                </span>
-              </p>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card size="sm">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-500">
-              <Database className="size-4" />
-              <CardTitle className="text-xs tracking-wider uppercase">
-                Database boundary
-              </CardTitle>
-            </div>
-            <CardDescription>PostgreSQL 17 / Drizzle ORM</CardDescription>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            <p>
-              Transactional repository active. Multi-tenant isolation and
-              atomic audit logging verified.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card size="sm">
-          <CardHeader>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Activity className="size-4" />
-              <CardTitle className="text-xs tracking-wider uppercase">
-                Clinical scope
-              </CardTitle>
-            </div>
-            <CardDescription>No automated risk scoring</CardDescription>
-          </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            <p>
-              No fabricated medical scores are shown. Live clinical advice
-              requires clinical review.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
 
       {onboarding.completed ? (
         <JournalDashboard />

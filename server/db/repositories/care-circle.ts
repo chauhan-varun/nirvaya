@@ -4,6 +4,9 @@ import { getDb } from "../index"
 import { careCircleInvitations } from "../schema/invitations"
 import { consentGrants, consentEvents } from "../schema/consent"
 import { auditEvents, outboxEvents } from "../schema/events"
+import { observations } from "../schema/observations"
+import { patients } from "../schema/patients"
+import { users } from "../schema/users"
 import {
   and,
   desc,
@@ -605,4 +608,167 @@ export async function checkActiveConsent(
     })
   }
   return allScopes as AllowedScope[]
+}
+
+// ─── Delegate / Caregiver view ─────────────────────────────────────────────
+
+export interface DelegatePatientView {
+  consentGrantId: string
+  patientId: string
+  tenantId: string
+  patientName: string | null
+  grantorEmail: string
+  purpose: string
+  scopes: AllowedScope[]
+  grantedAt: Date
+  expiresAt: Date
+}
+
+/**
+ * Returns all active consent grants where the given user is the grantee
+ * (i.e., someone shared their health data with this user).
+ * Never returns revoked or expired grants.
+ */
+export async function getGrantedPatientViews(
+  delegateClerkUserId: string
+): Promise<DelegatePatientView[]> {
+  const db = getDb()
+  const now = new Date()
+
+  // 1. Resolve internal user id
+  const [delegateUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.clerkSubject, delegateClerkUserId))
+    .limit(1)
+
+  if (!delegateUser) return []
+
+  // 2. Query active grants for this delegate
+  const rows = await db
+    .select({
+      consentGrantId: consentGrants.id,
+      patientId: consentGrants.patientId,
+      tenantId: consentGrants.tenantId,
+      purpose: consentGrants.purpose,
+      scopes: consentGrants.scopes,
+      grantedAt: consentGrants.grantedAt,
+      expiresAt: consentGrants.expiresAt,
+      patientName: patients.name,
+      grantorEmail: users.clerkSubject, // used as display identifier
+    })
+    .from(consentGrants)
+    .innerJoin(patients, eq(patients.id, consentGrants.patientId))
+    .innerJoin(users, eq(users.id, consentGrants.grantorUserId))
+    .where(
+      and(
+        eq(consentGrants.granteeUserId, delegateUser.id),
+        isNull(consentGrants.revokedAt),
+        gt(consentGrants.expiresAt, now)
+      )
+    )
+    .orderBy(desc(consentGrants.grantedAt))
+
+  return rows.map((r) => ({
+    consentGrantId: r.consentGrantId,
+    patientId: r.patientId,
+    tenantId: r.tenantId,
+    patientName: r.patientName,
+    grantorEmail: r.grantorEmail,
+    purpose: r.purpose,
+    scopes: (r.scopes as string[]) as AllowedScope[],
+    grantedAt: r.grantedAt,
+    expiresAt: r.expiresAt,
+  }))
+}
+
+/**
+ * Fetches recent observations for a patient that the delegate has scope to view.
+ * Enforces consent at the data layer — never trusts the caller.
+ */
+export async function getDelegateObservations(
+  delegateClerkUserId: string,
+  patientId: string,
+  tenantId: string,
+  limit = 20
+) {
+  const db = getDb()
+  const now = new Date()
+
+  // 1. Resolve internal delegate user id
+  const [delegateUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.clerkSubject, delegateClerkUserId))
+    .limit(1)
+
+  if (!delegateUser) {
+    throw Object.assign(new Error("Delegate user not found"), { code: "NOT_FOUND" })
+  }
+
+  // 2. Load active grant and scopes — real authorization check
+  const [grant] = await db
+    .select({ scopes: consentGrants.scopes })
+    .from(consentGrants)
+    .where(
+      and(
+        eq(consentGrants.granteeUserId, delegateUser.id),
+        eq(consentGrants.patientId, patientId),
+        eq(consentGrants.tenantId, tenantId),
+        isNull(consentGrants.revokedAt),
+        gt(consentGrants.expiresAt, now)
+      )
+    )
+    .limit(1)
+
+  if (!grant) {
+    throw Object.assign(
+      new Error("Access denied: no active consent grant for this patient"),
+      { code: "FORBIDDEN" }
+    )
+  }
+
+  const allowedScopes = (grant.scopes as string[]) as AllowedScope[]
+
+  // 3. Map scopes → observation types
+  const typeFilter: string[] = []
+  if (allowedScopes.includes("view_glucose")) {
+    typeFilter.push("glucose_fasting", "glucose_postprandial", "glucose_random")
+  }
+  if (allowedScopes.includes("view_weight")) {
+    typeFilter.push("weight")
+  }
+  if (allowedScopes.includes("view_blood_pressure")) {
+    typeFilter.push("systolic_bp", "diastolic_bp")
+  }
+
+  if (typeFilter.length === 0) {
+    // No observation-type scopes granted
+    return { observations: [], allowedScopes }
+  }
+
+  // 4. Fetch only allowed observation types
+  const rows = await db
+    .select({
+      id: observations.id,
+      type: observations.type,
+      numericValue: observations.numericValue,
+      unit: observations.unit,
+      notes: observations.notes,
+      observedAt: observations.observedAt,
+      source: observations.source,
+    })
+    .from(observations)
+    .where(
+      and(
+        eq(observations.tenantId, tenantId),
+        eq(observations.patientId, patientId),
+        // type IN typeFilter using OR chain
+        or(...typeFilter.map((t) => eq(observations.type, t as never)))
+      )
+    )
+    .orderBy(desc(observations.observedAt))
+    .limit(limit)
+
+  return { observations: rows, allowedScopes }
 }

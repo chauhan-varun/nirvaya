@@ -3,7 +3,6 @@ import Link from "next/link"
 import {
   ArrowLeft,
   ArrowUpRight,
-  CircleHelp,
   LayoutDashboard,
   LockKeyhole,
   Sprout,
@@ -92,15 +91,6 @@ export function PreviewShell({
               )}
             >
               Open Live App →
-            </Link>
-            <Link
-              href="/prompts"
-              className={cn(
-                buttonVariants({ variant: "ghost", size: "sm" }),
-                "hidden sm:inline-flex"
-              )}
-            >
-              <CircleHelp /> Build guide
             </Link>
             <span
               className="flex size-8 items-center justify-center rounded-full border bg-secondary text-xs font-semibold"

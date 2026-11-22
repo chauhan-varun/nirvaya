@@ -6,6 +6,8 @@ import { users } from "@/server/db/schema/users"
 import { patients } from "@/server/db/schema/patients"
 import { eq, and } from "drizzle-orm"
 import {
+  getGrantedPatientViews,
+  getDelegateObservations,
   ALLOWED_SCOPES,
   validateScopes,
   createInvitationAtomic,
@@ -324,6 +326,69 @@ export const careCircleRouter = router({
           consentActive: r.status === "accepted" && !r.consentRevokedAt,
         })),
         total: rows.length,
+      }
+    }),
+
+  /**
+   * Delegate view — returns all patients who have actively shared data with
+   * the authenticated user. No owner patient record required.
+   */
+  sharedWithMe: protectedProcedure.query(async ({ ctx }) => {
+    const views = await getGrantedPatientViews(ctx.userId)
+
+    return {
+      grants: views.map((v) => ({
+        consentGrantId: v.consentGrantId,
+        patientId: v.patientId,
+        tenantId: v.tenantId,
+        patientName: v.patientName,
+        grantorEmail: v.grantorEmail,
+        purpose: v.purpose,
+        scopes: v.scopes,
+        grantedAt: v.grantedAt.toISOString(),
+        expiresAt: v.expiresAt.toISOString(),
+      })),
+      total: views.length,
+    }
+  }),
+
+  /**
+   * Delegate observations — returns recent observations for a patient who
+   * has actively shared data with the authenticated user.
+   * Data-layer authorization is enforced inside the repository.
+   */
+  delegateObservations: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.string().uuid(),
+        tenantId: z.string().uuid(),
+        limit: z.number().int().min(1).max(50).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const result = await getDelegateObservations(
+          ctx.userId,
+          input.patientId,
+          input.tenantId,
+          input.limit
+        )
+
+        return {
+          observations: result.observations.map((o) => ({
+            id: o.id,
+            type: o.type,
+            numericValue: o.numericValue,
+            unit: o.unit,
+            notes: o.notes ?? null,
+            observedAt: o.observedAt.toISOString(),
+            source: o.source,
+          })),
+          allowedScopes: result.allowedScopes,
+          total: result.observations.length,
+        }
+      } catch (err) {
+        mapRepoError(err)
       }
     }),
 })

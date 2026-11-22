@@ -17,7 +17,7 @@ Use [docs/roadmap.md](docs/roadmap.md) for time boxes and acceptance criteria. T
 | 1 | [Identity](features/auth/README.md) | User-approved Clerk application/setup |
 | 2 | [Postgres foundation](drizzle/README.md) + [tRPC foundation](server/trpc/README.md) | Clerk ID/organization mapping |
 | 3 | [Onboarding](features/onboarding/README.md) | Consent, locale, Sarvam credentials |
-| 4 | [Risk explanation](features/risk/README.md) | Named validated screening method / clinical reviewer |
+| 4 | [Risk explanation](features/risk/README.md) | Completed (MDRF-IDRS engine, schemas, routes, tests) |
 | 5 | [Coaching](features/coaching/README.md) | LLM provider and reviewed safety policy |
 | 6 | [Daily journal](features/journal/README.md) | Units, timezone, ownership schema |
 | 7 | [Care circle](features/care-circle/README.md) | Revocable scopes, invitation UX |

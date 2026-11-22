@@ -24,7 +24,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Database,
-  Lock,
 } from "lucide-react"
 
 export function CareGraphView() {
@@ -56,23 +55,9 @@ export function CareGraphView() {
           </h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Derived Neo4j knowledge graph representing authorized relationships,
-          active care circle consent, and observation summary provenance.
+          Visual representation of authorized relationships, active care
+          circle consent, and health observation summaries.
         </p>
-      </div>
-
-      {/* Architectural principle card */}
-      <div className="flex gap-3 rounded-xl bg-secondary p-4 text-sm">
-        <Lock className="size-5 text-primary shrink-0 mt-0.5" />
-        <div className="space-y-1">
-          <p className="font-medium">PostgreSQL is canonical · Neo4j is derived</p>
-          <p className="text-muted-foreground text-xs leading-relaxed">
-            Authorization always evaluates in canonical PostgreSQL first. Even
-            during outbox projection delays, consent revocation blocks all reads
-            immediately. Graph queries are strictly parameterized, tenant-scoped,
-            and bounded.
-          </p>
-        </div>
       </div>
 
       {/* Projection Outbox Status Bar */}
@@ -168,7 +153,7 @@ export function CareGraphView() {
                 </Badge>
               </div>
               <CardDescription className="text-xs">
-                Root canonical patient node in derived graph
+                Patient identity in your connected care network
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">

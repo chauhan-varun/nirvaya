@@ -40,12 +40,6 @@ export default function HomePage() {
             >
               Connected care
             </a>
-            <Link
-              href="/prompts"
-              className="rounded-full px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/70 hover:text-foreground"
-            >
-              Build roadmap
-            </Link>
           </nav>
           <div className="flex items-center gap-3">
             <LanguageSelector compact />
@@ -316,9 +310,6 @@ export default function HomePage() {
           <p className="max-w-lg text-xs leading-relaxed text-muted-foreground">
             SugarGuard CareBridge · Health education, not medical advice. Connect with your care circle and healthcare team.
           </p>
-          <Link href="/prompts" className="text-xs font-medium text-primary">
-            Implementation roadmap ↗
-          </Link>
         </div>
       </footer>
     </div>

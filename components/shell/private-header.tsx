@@ -12,7 +12,8 @@ import {
   LayoutDashboard,
   Menu,
   Network,
-  Stethoscope,
+  Share2,
+  ShieldAlert,
   X,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -22,6 +23,11 @@ const NAV_ITEMS = [
     href: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/risk",
+    label: "Risk & insights",
+    icon: ShieldAlert,
   },
   {
     href: "/care-circle",
@@ -39,9 +45,9 @@ const NAV_ITEMS = [
     icon: Cpu,
   },
   {
-    href: "/clinic",
-    label: "Clinic",
-    icon: Stethoscope,
+    href: "/shared-with-me",
+    label: "Shared with me",
+    icon: Share2,
   },
 ]
 
