@@ -23,9 +23,11 @@ Clinically validated Indian Diabetes Risk Score (MDRF-IDRS; Mohan et al., JAPI 2
 - **Schema**: `server/db/schema/risk.ts` (`risk_assessments` table with composite foreign key to `patients(tenant_id, id)`)
 - **Repository**: `server/db/repositories/risk.ts` (`calculateIDRS`, `saveRiskAssessmentAtomic`, `getLatestRiskAssessment`, `getRiskAssessmentHistory`)
 - **Router**: `server/trpc/routers/risk.ts` (`risk.evaluatePreview`, `risk.latest`, `risk.history`, `risk.assess`)
-- **UI**: `features/risk/components/risk-dashboard.tsx`
+- **UI**: `features/risk/components/risk-dashboard.tsx`, `features/risk/components/voice-risk-intake.tsx`
+- **Voice Intake & NLP Parser**: `lib/voice/risk-intake-parser.ts` (extracts age, gender, waist, weight, activity level, family history from Hindi, English, and Hinglish speech; generates explainable Hindi breakdown `generateHindiRiskExplanation`)
+- **Speech Synthesis**: `lib/voice/speech-synthesis.ts` (Web Speech API integration for Hindi voice prompt and spoken risk explanation)
 - **Route**: `app/(private)/risk/page.tsx`
-- **Tests**: `tests/risk/risk-router.test.ts` (deterministic scoring, reference cases, prior diagnosis exclusion, non-onboarded rejection, audit logging)
+- **Tests**: `tests/risk/risk-router.test.ts`, `tests/voice/risk-intake-parser.test.ts`
 
 ## Clinical & Safety Boundaries
 - Explicitly distinguishes screening from medical diagnosis.
