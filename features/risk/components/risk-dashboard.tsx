@@ -8,6 +8,7 @@ import {
   AlertCircle,
   AlertTriangle,
   ArrowRight,
+  AudioLines,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -21,6 +22,8 @@ import {
   ShieldCheck,
   Sparkles,
   User,
+  Volume2,
+  VolumeX,
 } from "lucide-react"
 import {
   Card,
@@ -31,12 +34,20 @@ import {
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { format, formatDistanceToNow } from "date-fns"
 import { cn } from "@/lib/utils"
 import { OrganImpactView } from "./organ-impact-view"
 import { CareJourneyGuide } from "./care-journey-guide"
 import { PreventionPlanCard } from "@/features/prevention/components/prevention-plan-card"
+import { VoiceRiskIntake } from "./voice-risk-intake"
+import {
+  type ParsedRiskIntakeValues,
+  generateHindiRiskExplanation,
+} from "@/lib/voice/risk-intake-parser"
+import { speakText, stopSpeaking, isSpeaking } from "@/lib/voice/speech-synthesis"
+
 
 export function RiskDashboard() {
   const trpc = useTRPC()
@@ -63,6 +74,50 @@ export function RiskDashboard() {
   const [familyHistory, setFamilyHistory] = React.useState<
     "none" | "one_parent" | "both_parents"
   >("none")
+  const [voiceAppliedNotice, setVoiceAppliedNotice] = React.useState<
+    string | null
+  >(null)
+
+  // Handler for voice intake extracted values
+  const handleVoiceValuesExtracted = React.useCallback(
+    (values: ParsedRiskIntakeValues) => {
+      const applied: string[] = []
+
+      if (values.ageYears !== undefined) {
+        setAgeYears(values.ageYears)
+        applied.push(`Age: ${values.ageYears}`)
+      }
+      if (values.gender !== undefined) {
+        setGender(values.gender)
+        applied.push(`Gender: ${values.gender}`)
+      }
+      if (values.waistCircumferenceCm !== undefined) {
+        setWaistCm(values.waistCircumferenceCm)
+        applied.push(`Waist: ${values.waistCircumferenceCm} cm`)
+      }
+      if (values.physicalActivity !== undefined) {
+        setActivity(values.physicalActivity)
+        applied.push(`Activity: ${values.physicalActivity}`)
+      }
+      if (values.familyHistory !== undefined) {
+        setFamilyHistory(values.familyHistory)
+        applied.push(
+          `Family history: ${values.familyHistory.replace("_", " ")}`
+        )
+      }
+      if (values.alreadyDiagnosed !== undefined) {
+        setAlreadyDiagnosed(values.alreadyDiagnosed)
+        applied.push(`Diagnosed: ${values.alreadyDiagnosed ? "Yes" : "No"}`)
+      }
+
+      if (applied.length > 0) {
+        setVoiceAppliedNotice(
+          `✨ Applied from voice: ${applied.join(" • ")}. Please review all values before submitting.`
+        )
+      }
+    },
+    []
+  )
 
   // Auto-fill from patient profile if available
   React.useEffect(() => {
@@ -95,6 +150,27 @@ export function RiskDashboard() {
   }
 
   const latest = latestQuery.data?.assessment
+
+  const [isSpeakingExplanation, setIsSpeakingExplanation] = React.useState(false)
+
+  React.useEffect(() => {
+    return () => {
+      stopSpeaking()
+    }
+  }, [])
+
+  const hindiExplanation = React.useMemo(() => {
+    if (!latest) return null
+    return generateHindiRiskExplanation({
+      riskTier: latest.riskTier ?? "not_applicable",
+      totalScore: latest.totalScore,
+      ageScore: latest.ageScore,
+      waistScore: latest.waistScore,
+      activityScore: latest.activityScore,
+      familyHistoryScore: latest.familyHistoryScore,
+      alreadyDiagnosed: latest.alreadyDiagnosed,
+    })
+  }, [latest])
 
   return (
     <div className="mx-auto max-w-4xl space-y-8 px-4 py-8 sm:px-6">
@@ -205,18 +281,32 @@ export function RiskDashboard() {
         <>
           {/* Assessment Form Modal / Accordion */}
       {isAssessing && (
-        <Card className="border-primary/30 bg-card shadow-md">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base font-semibold">
-              MDRF Indian Diabetes Risk Assessment
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Answer 5 clinical factor questions to calculate your risk tier
-              deterministically.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-6">
+          <VoiceRiskIntake onValuesExtracted={handleVoiceValuesExtracted} />
+
+          <Card className="border-primary/30 bg-card shadow-md">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-semibold">
+                MDRF Indian Diabetes Risk Assessment
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Review or edit the 5 parameters below to calculate your risk tier
+                deterministically.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {voiceAppliedNotice && (
+                  <Alert className="border-emerald-500/30 bg-emerald-500/10">
+                    <Sparkles className="size-4 text-emerald-600 dark:text-emerald-400" />
+                    <AlertTitle className="text-emerald-700 dark:text-emerald-300">
+                      Voice Input Applied
+                    </AlertTitle>
+                    <AlertDescription className="text-xs text-emerald-800 dark:text-emerald-200">
+                      {voiceAppliedNotice}
+                    </AlertDescription>
+                  </Alert>
+                )}
               {/* Prior diagnosis toggle */}
               <div className="rounded-lg border border-border/80 bg-muted/30 p-4">
                 <label className="flex items-start gap-3 cursor-pointer">
@@ -389,6 +479,7 @@ export function RiskDashboard() {
             </form>
           </CardContent>
         </Card>
+      </div>
       )}
 
       {/* Latest Assessment Results */}
@@ -493,6 +584,80 @@ export function RiskDashboard() {
                   {latest.clinicalSummary}
                 </p>
               </div>
+
+              {/* Hindi Explainable Breakdown */}
+              {hindiExplanation && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <AudioLines className="size-4 text-primary" />
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-primary">
+                        Voice Explanation (Hindi & Hinglish)
+                      </h3>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (isSpeakingExplanation || isSpeaking()) {
+                          stopSpeaking()
+                          setIsSpeakingExplanation(false)
+                        } else {
+                          setIsSpeakingExplanation(true)
+                          speakText({
+                            text: hindiExplanation.spokenTextHindi,
+                            lang: "hi-IN",
+                            onStart: () => setIsSpeakingExplanation(true),
+                            onEnd: () => setIsSpeakingExplanation(false),
+                            onError: () => setIsSpeakingExplanation(false),
+                          })
+                        }
+                      }}
+                      className="h-7 gap-1.5 text-xs text-primary hover:bg-primary/10"
+                    >
+                      {isSpeakingExplanation ? (
+                        <>
+                          <VolumeX className="size-3.5" /> Stop Voice
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="size-3.5" /> Suniye (Listen Breakdown)
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <p className="text-sm font-semibold text-foreground">
+                    &ldquo;{hindiExplanation.headlineHindi}&rdquo;
+                  </p>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {hindiExplanation.spokenTextHindi}
+                  </p>
+
+                  {hindiExplanation.reasonsHindi.length > 0 && (
+                    <div className="pt-1 border-t border-primary/10">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                        Karan (Contributing Factors):
+                      </p>
+                      <ul className="list-disc pl-4 space-y-0.5 text-xs text-foreground">
+                        {hindiExplanation.reasonsHindi.map((r, i) => (
+                          <li key={i}>{r}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="rounded bg-primary/10 p-2 text-[11px] text-primary flex items-start gap-1.5">
+                    <Sparkles className="size-3.5 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Sujhav (Recommendation):</strong>{" "}
+                      {hindiExplanation.recommendationHindi}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Factor Breakdown */}
               {!latest.alreadyDiagnosed && latest.factorBreakdown?.factors && (
