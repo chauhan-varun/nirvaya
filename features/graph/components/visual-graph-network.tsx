@@ -65,7 +65,7 @@ export function VisualGraphNetwork({ insights }: VisualGraphNetworkProps) {
   const centerY = height / 2
 
   // Build nodes and edges dynamically from Neo4j insights
-  const { nodes, edges } = useMemo(() => {
+  const { nodes, edges }: { nodes: GraphNode[]; edges: GraphEdge[] } = useMemo(() => {
     const nodeList: GraphNode[] = []
     const edgeList: GraphEdge[] = []
 
@@ -281,36 +281,36 @@ export function VisualGraphNetwork({ insights }: VisualGraphNetworkProps) {
   }, [insights, centerX, centerY])
 
   // Filter nodes based on user selection
-  const filteredNodes = useMemo(() => {
+  const filteredNodes: GraphNode[] = useMemo(() => {
     if (filterCategory === "all") return nodes
     if (filterCategory === "care-circle") {
       return nodes.filter(
-        (n) => n.category === "patient" || n.category === "consent" || n.category === "user"
+        (n: GraphNode) => n.category === "patient" || n.category === "consent" || n.category === "user"
       )
     }
     if (filterCategory === "summaries") {
       return nodes.filter(
-        (n) => n.category === "patient" || n.category === "observation"
+        (n: GraphNode) => n.category === "patient" || n.category === "observation"
       )
     }
     return nodes
   }, [nodes, filterCategory])
 
   const filteredNodeIds = useMemo(
-    () => new Set(filteredNodes.map((n) => n.id)),
+    () => new Set(filteredNodes.map((n: GraphNode) => n.id)),
     [filteredNodes]
   )
 
-  const filteredEdges = useMemo(
+  const filteredEdges: GraphEdge[] = useMemo(
     () =>
       edges.filter(
-        (e) => filteredNodeIds.has(e.from) && filteredNodeIds.has(e.to)
+        (e: GraphEdge) => filteredNodeIds.has(e.from) && filteredNodeIds.has(e.to)
       ),
     [edges, filteredNodeIds]
   )
 
-  const selectedNode = useMemo(
-    () => nodes.find((n) => n.id === selectedNodeId) || nodes[0],
+  const selectedNode: GraphNode = useMemo(
+    () => nodes.find((n: GraphNode) => n.id === selectedNodeId) || nodes[0]!,
     [nodes, selectedNodeId]
   )
 
