@@ -82,8 +82,17 @@ export function PreviewShell({
             connected
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <LanguageSelector />
+            <LanguageSelector compact />
             <Badge variant="secondary">Interface preview</Badge>
+            <Link
+              href="/dashboard"
+              className={cn(
+                buttonVariants({ variant: "default", size: "sm" }),
+                "text-xs"
+              )}
+            >
+              Open Live App →
+            </Link>
             <Link
               href="/prompts"
               className={cn(
@@ -101,12 +110,20 @@ export function PreviewShell({
             </span>
           </div>
         </header>
-        <div className="flex items-start gap-2 border-b border-amber-200 bg-amber-50 px-5 py-3 text-xs leading-relaxed text-amber-950 md:px-9">
-          <LockKeyhole className="mt-0.5 size-3.5 shrink-0" />
-          <p>
-            Public synthetic preview. No account, recording, diagnosis, or saved
-            health data. All connected services are pending.
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-5 py-3 text-xs leading-relaxed text-amber-950 md:px-9">
+          <div className="flex items-start gap-2">
+            <LockKeyhole className="mt-0.5 size-3.5 shrink-0" />
+            <p>
+              Public synthetic preview mode. For real health tracking, care circles,
+              edge stations, and clinic workflows, switch to the authenticated workspace.
+            </p>
+          </div>
+          <Link
+            href="/dashboard"
+            className="font-medium underline hover:text-amber-800 text-xs"
+          >
+            Open Live App Dashboard →
+          </Link>
         </div>
         <main
           id="main-content"

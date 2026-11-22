@@ -3,7 +3,7 @@ import { getDb } from "../index"
 import { tenants, memberships } from "../schema/tenants"
 import { patients, type Patient } from "../schema/patients"
 import { consentGrants, type ConsentGrant } from "../schema/consent"
-import { auditEvents } from "../schema/events"
+import { auditEvents, outboxEvents } from "../schema/events"
 import { eq } from "drizzle-orm"
 
 export interface CompleteOnboardingParams {
@@ -132,6 +132,44 @@ export async function completeOnboardingAtomic(
       decision: "allow",
       requestId: params.requestId,
     })
+
+    // 5. Insert outbox events for patient and consent projection
+    await tx.insert(outboxEvents).values([
+      {
+        tenantId,
+        aggregateType: "patient",
+        aggregateId: patient.id,
+        aggregateVersion: 1,
+        eventType: "patient.created",
+        schemaVersion: 1,
+        payload: {
+          patientId: patient.id,
+          ownerUserId: params.userId,
+          preferredName: params.preferredName,
+          yearOfBirth: params.yearOfBirth,
+          gender: params.gender ?? null,
+        },
+      },
+      {
+        tenantId,
+        aggregateType: "consent",
+        aggregateId: consent.id,
+        aggregateVersion: 1,
+        eventType: "consent.granted",
+        schemaVersion: 1,
+        payload: {
+          consentId: consent.id,
+          tenantId,
+          patientId: patient.id,
+          grantorUserId: params.userId,
+          granteeUserId: params.userId,
+          scopes: consent.scopes,
+          purpose: consent.purpose,
+          policyVersion: consent.policyVersion,
+          expiresAt: consent.expiresAt.toISOString(),
+        },
+      },
+    ])
 
     return {
       patient,

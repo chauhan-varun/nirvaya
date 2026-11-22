@@ -11,6 +11,8 @@ import {
   auditEvents,
   outboxEvents,
   idempotencyRecords,
+  devices,
+  deviceNonces,
 } from "@/server/db/schema"
 import { getTableColumns } from "drizzle-orm"
 
@@ -83,5 +85,22 @@ describe("Drizzle Schema Contracts & Constraints", () => {
     const eventCols = getTableColumns(consentEvents)
     expect(eventCols.consentId).toBeDefined()
     expect(eventCols.eventType).toBeDefined()
+  })
+
+  it("defines devices and deviceNonces tables with HMAC key and replay uniqueness", () => {
+    const devCols = getTableColumns(devices)
+    expect(devCols.externalId).toBeDefined()
+    expect(devCols.secretKey).toBeDefined()
+    expect(devCols.keyVersion).toBeDefined()
+    expect(devCols.status).toBeDefined()
+    expect(devCols.tenantId).toBeDefined()
+    expect(devCols.patientId).toBeDefined()
+
+    const nonceCols = getTableColumns(deviceNonces)
+    expect(nonceCols.deviceId).toBeDefined()
+    expect(nonceCols.nonce).toBeDefined()
+    expect(nonceCols.keyVersion).toBeDefined()
+    expect(nonceCols.signedTimestamp).toBeDefined()
+    expect(nonceCols.expiresAt).toBeDefined()
   })
 })

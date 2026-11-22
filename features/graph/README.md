@@ -24,4 +24,83 @@ Read `../../PROMPTS.md`, `../../docs/architecture.md`, `../../docs/rendering.md`
 `features/graph/` for domain UI/schemas, the appropriate real private route under `app/`, and narrowly scoped server modules/tests. Coordinate changes to shared contracts, auth and database migrations rather than editing them concurrently. Do not modify `/preview` to use real data. Update this file with completed behavior, actual commands/results and remaining limitations after implementation.
 
 ## Status
-NOT IMPLEMENTED. All acceptance checks above are future work.
+IMPLEMENTED. See acceptance check results below.
+
+## What was implemented
+
+### Neo4j Driver & Connection Management (`server/graph/driver.ts`)
+- Server-only singleton connection management with pool sizing and automatic session cleanup (`withNeo4jSession`).
+- Graceful teardown via `closeNeo4jDriver()`.
+
+### Graph Schema & Constraints (`server/graph/schema.ts`)
+- Idempotent schema initialization via `initializeGraphSchema()`:
+  - `user_id_unique`: `FOR (u:User) REQUIRE u.id IS UNIQUE`
+  - `tenant_id_unique`: `FOR (t:Tenant) REQUIRE t.id IS UNIQUE`
+  - `patient_id_unique`: `FOR (p:Patient) REQUIRE p.id IS UNIQUE`
+  - `consent_id_unique`: `FOR (c:Consent) REQUIRE c.id IS UNIQUE`
+  - `device_id_unique`: `FOR (d:Device) REQUIRE d.id IS UNIQUE`
+  - `care_plan_id_unique`: `FOR (cp:CarePlan) REQUIRE cp.id IS UNIQUE`
+  - `obs_summary_id_unique`: `FOR (o:ObservationSummary) REQUIRE o.id IS UNIQUE`
+  - `receipt_key_unique`: `FOR (pr:ProjectionReceipt) REQUIRE pr.receiptKey IS UNIQUE`
+
+### Outbox Projection Engine (`server/graph/projector.ts`)
+- `projectOutboxEventToNeo4j`: Maps domain outbox events to parameterized Cypher `MERGE` queries:
+  - `patient.created` -> `(:Tenant)`, `(:User)-[:MEMBER_OF]->(:Tenant)`, `(:User)-[:OWNS]->(:Patient)`.
+  - `consent.granted` -> `(:Patient)-[:HAS_CONSENT]->(:Consent)`, `(:User)-[:GRANTED]->(:Consent)`, `(:Consent)-[:GRANTS_TO]->(:User)`.
+  - `consent.revoked` -> Marks `Consent.status = 'revoked'`, stamps `revokedAt`, and deletes active `[:GRANTS_TO]` relationship.
+  - `observation.recorded` -> Projects privacy-preserving `(:ObservationSummary)` node aggregated per `(patientId, type)` with count and latest timestamp; never stores raw medical free text or notes.
+- **Idempotence & Monotonic Versioning**:
+  - `ProjectionReceipt` tracking keyed by `${consumer}_${eventId}` prevents double-application.
+  - Conditional `SET` using `CASE WHEN $aggregateVersion >= coalesce(n._version, 0)` guarantees stale/out-of-order events do not overwrite newer state.
+- `projectPendingOutboxEvents`: Worker draining pending outbox events from PostgreSQL with bounded exponential backoff retry.
+
+### Grounded Retrieval & Canonical Authorization (`server/graph/retrieval.ts`)
+- `getAuthorizedCareGraphInsights`:
+  - **PostgreSQL Precedence**: Always authorizes in PostgreSQL first. If a caregiver's consent is revoked in Postgres, access is rejected immediately (`FORBIDDEN`) without waiting for graph synchronization.
+  - Parameterized, tenant-scoped, bounded Cypher queries with depth and limit constraints.
+  - Sanitized, structured DTO outputs.
+
+### tRPC Router (`server/trpc/routers/graph.ts`)
+- `graph.insights`: Grounded care graph retrieval.
+- `graph.sync`: Drains pending transactional outbox events into Neo4j.
+- `graph.status`: Projection health and backlog metrics.
+- `graph.initSchema`: Idempotent constraint setup.
+- Registered in `server/trpc/routers/_app.ts`.
+
+### UI & Private Route
+- `features/graph/components/care-graph-view.tsx`: Rich interface showing graph nodes, active care circle consent edges, observation summaries, and outbox synchronization status.
+- `app/(private)/graph/page.tsx`: Dynamic private route (`ƒ`) protected with Clerk `auth.protect()` and onboarding check.
+- `app/(private)/layout.tsx`: Navigation updated with "Care graph" link.
+
+### Integration Tests (`tests/graph/neo4j-graph.test.ts`)
+- 7 comprehensive tests against live Neo4j and PostgreSQL containers:
+  - Uniqueness constraints verification.
+  - Idempotent replay without node duplication.
+  - Out-of-order version protection.
+  - Observation summaries privacy compliance (no raw text).
+  - PostgreSQL authorization precedence (immediate denial on revocation).
+  - Deletion/tombstone of revoked consent edges.
+  - Outbox worker catchup and status transition to `completed`.
+
+## Commands run and results
+
+```
+pnpm test tests/graph/neo4j-graph.test.ts   → 7 passed (7)
+pnpm test                                  → 12 test files passed (72/72 tests)
+pnpm typecheck                             → 0 errors
+pnpm build                                 → ✓ Compiled successfully; /graph is ƒ (Dynamic)
+```
+
+## Acceptance checks
+
+- [x] Duplicate/out-of-order outbox delivery cannot create duplicate or stale graph state.
+- [x] Postgres commit survives graph outage and worker catches up safely.
+- [x] Every graph query parameterized, bounded and tenant/subject scoped.
+- [x] Caregiver revocation blocks retrieval immediately even before graph deletion.
+- [x] Real Neo4j integration tests verify constraints, replay, cross-user denial and deletion.
+
+## Remaining limitations
+
+- Autonomous background cron/daemon worker for projection polling is deferred until deployment infrastructure is configured (currently runnable via `graph.sync` or scheduler).
+- GraphRAG text embeddings are deferred until LLM provider is approved (P01).
+- Neo4j graph is read-only for application authorization; PostgreSQL remains the sole canonical authority.

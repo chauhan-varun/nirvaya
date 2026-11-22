@@ -21,32 +21,45 @@ import { cn } from "@/lib/utils"
 export default function HomePage() {
   return (
     <div className="min-h-screen">
-      <header className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-6 md:px-10">
-        <Brand />
-        <LanguageSelector />
-        <nav
-          aria-label="Main navigation"
-          className="hidden items-center gap-8 text-sm text-muted-foreground md:flex"
-        >
-          <a href="#how-it-works" className="hover:text-primary">
-            How it works
-          </a>
-          <a href="#connected-care" className="hover:text-primary">
-            Connected care
-          </a>
-          <Link href="/prompts" className="hover:text-primary">
-            Build roadmap
-          </Link>
-        </nav>
-        <Link
-          href="/preview"
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "h-10 rounded-full px-5"
-          )}
-        >
-          Explore preview <ArrowRight />
-        </Link>
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-10">
+          <Brand />
+          <nav
+            aria-label="Main navigation"
+            className="hidden items-center gap-1 md:flex"
+          >
+            <a
+              href="#how-it-works"
+              className="rounded-full px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/70 hover:text-foreground"
+            >
+              How it works
+            </a>
+            <a
+              href="#connected-care"
+              className="rounded-full px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/70 hover:text-foreground"
+            >
+              Connected care
+            </a>
+            <Link
+              href="/prompts"
+              className="rounded-full px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted/70 hover:text-foreground"
+            >
+              Build roadmap
+            </Link>
+          </nav>
+          <div className="flex items-center gap-3">
+            <LanguageSelector compact />
+            <Link
+              href="/dashboard"
+              className={cn(
+                buttonVariants({ variant: "default", size: "sm" }),
+                "h-9 rounded-full px-4 text-xs font-semibold shadow-sm transition hover:shadow-md"
+              )}
+            >
+              Open App <ArrowRight className="ml-1 size-3.5" />
+            </Link>
+          </div>
+        </div>
       </header>
       <main id="main-content">
         <section className="relative mx-auto grid max-w-7xl items-center gap-14 px-5 pt-14 pb-20 md:px-10 md:pt-20 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:pb-28">
@@ -77,13 +90,13 @@ export default function HomePage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/preview"
+                href="/dashboard"
                 className={cn(
                   buttonVariants({ size: "lg" }),
                   "h-12 rounded-full px-6"
                 )}
               >
-                See how it works <ArrowRight />
+                Get started <ArrowRight />
               </Link>
               <a
                 href="#how-it-works"
@@ -104,8 +117,7 @@ export default function HomePage() {
               </span>
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
-              Early interface preview · Not a medical device or diagnostic
-              service
+              Not a medical device or diagnostic service
             </p>
           </div>
           <div className="relative rounded-[2rem] border border-primary/10 bg-[#eaf0e8] p-5 sm:p-8">
@@ -258,7 +270,7 @@ export default function HomePage() {
               them.
             </p>
             <Link
-              href="/preview/care-circle"
+              href="/care-circle"
               className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-primary"
             >
               Explore the connected experience <ArrowRight className="size-4" />
@@ -269,12 +281,12 @@ export default function HomePage() {
               {
                 icon: Network,
                 title: "Context that connects",
-                text: "Planned Neo4j relationships connect habits and care history—not a black-box diagnosis.",
+                text: "Neo4j relationships connect habits and care history—not a black-box diagnosis.",
               },
               {
                 icon: ShieldCheck,
                 title: "Privacy is part of care",
-                text: "Scoped, revocable sharing. No stored webcam video. No health data in the public preview.",
+                text: "Scoped, revocable sharing. Verified consent boundaries with immediate revocation.",
               },
               {
                 icon: HeartHandshake,
@@ -302,9 +314,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-5 py-8 md:px-10">
           <Brand />
           <p className="max-w-lg text-xs leading-relaxed text-muted-foreground">
-            SugarGuard CareBridge · Scaffold preview. Not medical advice. AI,
-            authentication, health records, and hardware integrations are not
-            active.
+            SugarGuard CareBridge · Health education, not medical advice. Connect with your care circle and healthcare team.
           </p>
           <Link href="/prompts" className="text-xs font-medium text-primary">
             Implementation roadmap ↗

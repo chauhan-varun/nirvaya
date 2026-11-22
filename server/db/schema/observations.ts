@@ -29,6 +29,8 @@ export const observations = pgTable(
         "sleep",
         "hydration",
         "medication",
+        "presence",
+        "ambient_temperature",
       ],
     }).notNull(),
     // Preserve exact numeric decimal precision: never floating point

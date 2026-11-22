@@ -3,7 +3,7 @@ import { createHash, randomBytes } from "node:crypto"
 import { getDb } from "../index"
 import { careCircleInvitations } from "../schema/invitations"
 import { consentGrants, consentEvents } from "../schema/consent"
-import { auditEvents } from "../schema/events"
+import { auditEvents, outboxEvents } from "../schema/events"
 import {
   and,
   desc,
@@ -265,6 +265,27 @@ export async function acceptInvitationAtomic(
       decision: "allow",
       requestId: params.requestId,
     })
+
+    // 9. Outbox event for Neo4j projection
+    await tx.insert(outboxEvents).values({
+      tenantId: inv.tenantId,
+      aggregateType: "consent",
+      aggregateId: grant.id,
+      aggregateVersion: 1,
+      eventType: "consent.granted",
+      schemaVersion: 1,
+      payload: {
+        consentId: grant.id,
+        tenantId: inv.tenantId,
+        patientId: inv.patientId,
+        grantorUserId: inv.inviterUserId,
+        granteeUserId: params.acceptorUserId,
+        scopes: inv.requestedScopes,
+        purpose: inv.purpose,
+        policyVersion: params.policyVersion,
+        expiresAt: effectiveExpiry.toISOString(),
+      },
+    })
   })
 
   return { consentGrantId: consentGrantId!, scopes }
@@ -415,6 +436,22 @@ export async function revokeConsentGrantAtomic(
       purpose: "owner_revocation",
       decision: "allow",
       requestId: params.requestId,
+    })
+
+    // Outbox event for Neo4j projection
+    await tx.insert(outboxEvents).values({
+      tenantId: params.tenantId,
+      aggregateType: "consent",
+      aggregateId: grant.id,
+      aggregateVersion: 2,
+      eventType: "consent.revoked",
+      schemaVersion: 1,
+      payload: {
+        consentId: grant.id,
+        tenantId: params.tenantId,
+        patientId: params.patientId,
+        revokedAt: now.toISOString(),
+      },
     })
   })
 }
