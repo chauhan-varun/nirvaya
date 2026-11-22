@@ -10,14 +10,23 @@ import {
 } from "@/components/ui/card"
 import { buttonVariants } from "@/components/ui/button"
 import Link from "next/link"
-import { CheckCircle2, ArrowRight, ShieldCheck } from "lucide-react"
+import { CheckCircle2, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react"
 
 export const dynamic = "force-dynamic"
 
 export default async function OnboardingPage() {
   await auth.protect()
-  const trpc = await createCaller()
-  const status = await trpc.onboarding.status()
+  
+  let status = { completed: false, patient: null as any }
+  let dbError: string | null = null
+
+  try {
+    const trpc = await createCaller()
+    status = await trpc.onboarding.status()
+  } catch (err: any) {
+    console.error("[OnboardingPage] Failed to fetch onboarding status:", err)
+    dbError = err?.message || "Database connection error"
+  }
 
   if (status.completed && status.patient) {
     return (
@@ -77,6 +86,19 @@ export default async function OnboardingPage() {
           transient server processing; keyboard entry is always available.
         </p>
       </div>
+
+      {dbError && (
+        <Card className="border-amber-500/40 bg-amber-500/10 p-4 text-xs text-amber-700 dark:text-amber-400 space-y-1">
+          <div className="flex items-center gap-2 font-semibold">
+            <AlertCircle className="size-4" />
+            <span>Database Connection Notice</span>
+          </div>
+          <p>
+            Could not verify existing patient status with PostgreSQL: <code>{dbError}</code>.
+            If using a cloud database (e.g. Neon, Supabase), ensure <code>DATABASE_URL</code> in Vercel includes <code>?sslmode=require</code> and database migrations have run (<code>pnpm db:migrate</code>).
+          </p>
+        </Card>
+      )}
 
       <OnboardingFlow />
     </div>

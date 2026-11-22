@@ -20,19 +20,15 @@ function getDatabaseUrl(): string {
 }
 
 export function getDbPool(): pg.Pool {
-  if (process.env.NODE_ENV === "production") {
-    return new Pool({
-      connectionString: getDatabaseUrl(),
-      max: 10,
-      idleTimeoutMillis: 30000,
-    })
-  }
+  const url = getDatabaseUrl()
+  const isLocal = url.includes("localhost") || url.includes("127.0.0.1")
 
   if (!globalThis.__dbPool) {
     globalThis.__dbPool = new Pool({
-      connectionString: getDatabaseUrl(),
-      max: 5,
+      connectionString: url,
+      max: process.env.NODE_ENV === "production" ? 10 : 5,
       idleTimeoutMillis: 30000,
+      ssl: !isLocal ? { rejectUnauthorized: false } : undefined,
     })
   }
 

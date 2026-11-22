@@ -29,8 +29,17 @@ export const dynamic = "force-dynamic"
 
 export default async function DashboardPage() {
   await auth.protect()
-  const trpc = await createCaller()
-  const onboarding = await trpc.onboarding.status()
+  
+  let onboarding = { completed: false, patient: null as any }
+  let dbError: string | null = null
+
+  try {
+    const trpc = await createCaller()
+    onboarding = await trpc.onboarding.status()
+  } catch (err: any) {
+    console.error("[DashboardPage] Failed to fetch onboarding status:", err)
+    dbError = err?.message || "Database connection error"
+  }
 
   return (
     <div className="space-y-6">
