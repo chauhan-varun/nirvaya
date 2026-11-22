@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { AuthClerkProvider } from "@/features/auth/components/clerk-provider-wrapper"
 import { TRPCReactProvider } from "@/trpc/client"
 import { PrivateHeader } from "@/components/shell/private-header"
+import { AppFooter } from "@/components/shell/app-footer"
 
 export const dynamic = "force-dynamic"
 
@@ -31,6 +32,7 @@ export default async function PrivateLayout({
           <main id="main-content" className="flex-1 p-4 md:p-8">
             <div className="mx-auto max-w-6xl">{children}</div>
           </main>
+          <AppFooter variant="compact" />
         </div>
       </TRPCReactProvider>
     </AuthClerkProvider>

@@ -16,22 +16,14 @@ function getNeo4jConfig() {
 }
 
 export function getNeo4jDriver(): Driver {
-  if (process.env.NODE_ENV === "production") {
-    const { uri, user, password } = getNeo4jConfig()
-    return neo4j.driver(uri, neo4j.auth.basic(user, password), {
-      maxConnectionPoolSize: 25,
-      connectionTimeout: 10000,
-    })
-  }
-
   if (!globalThis.__neo4jDriver) {
     const { uri, user, password } = getNeo4jConfig()
     globalThis.__neo4jDriver = neo4j.driver(
       uri,
       neo4j.auth.basic(user, password),
       {
-        maxConnectionPoolSize: 10,
-        connectionTimeout: 5000,
+        maxConnectionPoolSize: 25,
+        connectionTimeout: 10000,
       }
     )
   }

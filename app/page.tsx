@@ -13,6 +13,8 @@ import {
   Sprout,
 } from "lucide-react"
 import { Brand } from "@/components/shell/brand"
+import { AppFooter } from "@/components/shell/app-footer"
+import { HeroModelContainer } from "@/components/landing/hero-model-container"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -114,75 +116,8 @@ export default function HomePage() {
               Not a medical device or diagnostic service
             </p>
           </div>
-          <div className="relative rounded-[2rem] border border-primary/10 bg-[#eaf0e8] p-5 sm:p-8">
-            <div className="absolute -top-4 right-8 flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-xs shadow-sm">
-              <Leaf className="size-4 text-primary" /> A little better, every
-              day
-            </div>
-            <Card className="rounded-2xl shadow-[0_20px_70px_-30px_rgba(37,74,59,0.3)]">
-              <CardContent className="space-y-6 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground">
-                      Your daily companion
-                    </p>
-                    <h2 className="mt-1 text-xl font-semibold">
-                      Welcome to a fresh start <span aria-hidden="true">☀</span>
-                    </h2>
-                  </div>
-                  <span className="flex size-10 items-center justify-center rounded-full bg-secondary">
-                    <Sprout className="size-5 text-primary" />
-                  </span>
-                </div>
-                <div className="rounded-xl bg-primary p-5 text-primary-foreground">
-                  <div className="flex items-center gap-2 text-xs text-primary-foreground/80">
-                    <Sparkles className="size-4" /> One small step for today
-                  </div>
-                  <p className="mt-3 text-lg font-medium">
-                    Your health, in your words.
-                  </p>
-                  <p className="mt-2 text-xs leading-relaxed text-primary-foreground/80">
-                    Start by understanding your routine.
-                    <br />
-                    No judgment. Just a starting point.
-                  </p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-xl border p-4">
-                    <AudioLines className="size-5 text-primary" />
-                    <p className="mt-3 text-sm font-medium">
-                      You speak. We listen.
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Voice onboarding · planned
-                    </p>
-                  </div>
-                  <div className="rounded-xl border p-4">
-                    <HeartHandshake className="size-5 text-primary" />
-                    <p className="mt-3 text-sm font-medium">Better, together</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Family support · planned
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 border-t pt-4">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-secondary">
-                    <ShieldCheck className="size-4 text-primary" />
-                  </span>
-                  <p className="text-xs leading-relaxed text-muted-foreground">
-                    Your story stays yours.
-                    <br />
-                    <span className="font-medium text-foreground">
-                      You choose what to share.
-                    </span>
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <div className="mt-5 flex items-center justify-center gap-2 text-[10px] font-medium tracking-[0.12em] text-primary/80 uppercase">
-              <span className="h-px w-8 bg-primary/20" /> Illustrative
-              experience <span className="h-px w-8 bg-primary/20" />
-            </div>
+          <div className="relative flex items-center justify-center">
+            <HeroModelContainer />
           </div>
         </section>
         <section id="how-it-works" className="border-y bg-card">
@@ -304,14 +239,7 @@ export default function HomePage() {
           </div>
         </section>
       </main>
-      <footer className="border-t bg-card">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-5 py-8 md:px-10">
-          <Brand />
-          <p className="max-w-lg text-xs leading-relaxed text-muted-foreground">
-            Nirvaya · Health education, not medical advice. Connect with your care circle and healthcare team.
-          </p>
-        </div>
-      </footer>
+      <AppFooter variant="full" />
     </div>
   )
 }

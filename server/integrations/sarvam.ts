@@ -59,7 +59,7 @@ export async function transcribeAudioChunk(
       type: baseMimeType,
     })
     formData.append("file", blob, "audio_chunk.webm")
-    formData.append("model", "saarika:v2")
+    formData.append("model", "saaras:v3")
     if (params.languageCode) {
       formData.append("language_code", params.languageCode)
     }

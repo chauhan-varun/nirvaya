@@ -25,7 +25,9 @@ import {
   CheckCircle2,
   AlertCircle,
   AudioLines,
+  Sparkles,
 } from "lucide-react"
+import { parseOnboardingSpeech } from "@/lib/voice/onboarding-parser"
 
 export function OnboardingFlow({
   defaultName = "",
@@ -74,9 +76,35 @@ export function OnboardingFlow({
       onSuccess(data) {
         setIsTranscribing(false)
         setTranscript(data.transcript)
-        setVoiceNotice(
-          "Transcript ready for review. You can edit it below or copy relevant details to your profile form."
-        )
+
+        // Parse extracted details from spoken transcript
+        const parsed = parseOnboardingSpeech(data.transcript)
+        const filledDetails: string[] = []
+
+        if (parsed.name) {
+          setPreferredName(parsed.name)
+          filledDetails.push(`Name: "${parsed.name}"`)
+        }
+        if (parsed.yearOfBirth) {
+          setYearOfBirth(parsed.yearOfBirth)
+          filledDetails.push(`Birth Year: ${parsed.yearOfBirth}`)
+        }
+        if (parsed.gender) {
+          setGender(parsed.gender)
+          filledDetails.push(
+            `Gender: ${parsed.gender.charAt(0).toUpperCase() + parsed.gender.slice(1)}`
+          )
+        }
+
+        if (filledDetails.length > 0) {
+          setVoiceNotice(
+            `✨ Auto-filled from voice: ${filledDetails.join(" • ")}. Please review the fields below and check consent.`
+          )
+        } else {
+          setVoiceNotice(
+            "Transcript captured. No name or birth year recognized; please check the form fields below."
+          )
+        }
       },
       onError(err) {
         setIsTranscribing(false)

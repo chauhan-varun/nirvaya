@@ -25,6 +25,7 @@ import {
   ArrowRight,
   Database,
 } from "lucide-react"
+import { VisualGraphNetwork } from "./visual-graph-network"
 
 export function CareGraphView() {
   const trpc = useTRPC()
@@ -137,7 +138,11 @@ export function CareGraphView() {
       )}
 
       {insights && (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-6">
+          {/* Interactive Visual Graph Canvas */}
+          <VisualGraphNetwork insights={insights} />
+
+          <div className="grid gap-6 md:grid-cols-2">
           {/* Patient Core Node */}
           <Card>
             <CardHeader className="pb-3">
@@ -303,6 +308,7 @@ export function CareGraphView() {
               )}
             </CardContent>
           </Card>
+        </div>
         </div>
       )}
     </div>

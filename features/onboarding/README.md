@@ -8,7 +8,7 @@ IMPLEMENTED.
 - Adult metabolic health eligibility check (`yearOfBirth <= currentYear - 18`) enforced on the server.
 - Optional voice recording with explicit user initiation (`navigator.mediaDevices.getUserMedia` is only triggered on button click).
 - Audio chunks capped at 30 seconds client-side and 2MB server-side.
-- Server-only Sarvam STT adapter (`server/integrations/sarvam.ts`) using `saarika:v2` model with graceful `status: "unavailable"` when unconfigured.
+- Server-only Sarvam STT adapter (`server/integrations/sarvam.ts`) using `saaras:v3` model with graceful `status: "unavailable"` when unconfigured.
 - Atomic onboarding transaction (`server/db/repositories/onboarding.ts`) creating tenant, membership, patient record, consent grant, and audit event in a single database transaction.
 
 ## Acceptance checks

@@ -44,8 +44,10 @@ import {
   Clock,
   Scan,
   ShieldAlert,
+  Mic,
 } from "lucide-react"
 import { LabReportScanner } from "./lab-report-scanner"
+import { VoiceJournalLogger } from "./voice-journal-logger"
 
 export function JournalDashboard() {
   const trpc = useTRPC()
@@ -324,6 +326,9 @@ export function JournalDashboard() {
               </TabsTrigger>
               <TabsTrigger value="medication" className="gap-1.5 text-xs">
                 <Pill className="size-3.5" /> Medicines
+              </TabsTrigger>
+              <TabsTrigger value="voice" className="gap-1.5 text-xs bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 data-[state=active]:bg-emerald-600 data-[state=active]:text-white font-semibold">
+                <Mic className="size-3.5" /> Voice Log
               </TabsTrigger>
               <TabsTrigger value="ocr" className="gap-1.5 text-xs bg-primary/10 text-primary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold">
                 <Scan className="size-3.5" /> Scan Report (OCR)
@@ -785,6 +790,14 @@ export function JournalDashboard() {
                   setSuccessMessage("Lab report measurements saved to your journal successfully.")
                   observationsQuery.refetch()
                 }}
+              />
+            </TabsContent>
+
+            {/* 8. Voice Log Tab */}
+            <TabsContent value="voice">
+              <VoiceJournalLogger
+                onSuccess={(msg) => handleMutationSuccess(msg)}
+                onError={(err) => setErrorMessage(err)}
               />
             </TabsContent>
           </Tabs>
