@@ -1,4 +1,4 @@
-# SugarGuard CareBridge — model handoff
+# Nirvaya — model handoff
 
 ## Scope and current truth
 

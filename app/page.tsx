@@ -308,7 +308,7 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-5 py-8 md:px-10">
           <Brand />
           <p className="max-w-lg text-xs leading-relaxed text-muted-foreground">
-            SugarGuard CareBridge · Health education, not medical advice. Connect with your care circle and healthcare team.
+            Nirvaya · Health education, not medical advice. Connect with your care circle and healthcare team.
           </p>
         </div>
       </footer>

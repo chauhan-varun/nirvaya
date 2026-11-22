@@ -1,4 +1,4 @@
-# SugarGuard CareBridge implementation handoff
+# Nirvaya implementation handoff
 
 ## Read first
 

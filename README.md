@@ -1,4 +1,4 @@
-# SugarGuard CareBridge
+# Nirvaya
 
 **Learn → Understand → Take daily steps → Connect with loved ones.**
 

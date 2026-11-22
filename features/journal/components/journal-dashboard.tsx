@@ -709,7 +709,7 @@ export function JournalDashboard() {
                   </AlertTitle>
                   <AlertDescription className="text-xs">
                     Log only medicines currently prescribed by your qualified
-                    doctor. SugarGuard CareBridge records adherence but never
+                    doctor. Nirvaya records adherence but never
                     recommends, adjusts, or calculates medication dosages.
                   </AlertDescription>
                 </Alert>

@@ -70,7 +70,7 @@ export default async function OnboardingPage() {
           <span>Patient Registration</span>
         </div>
         <h1 className="font-heading text-2xl font-bold tracking-tight">
-          Welcome to SugarGuard CareBridge
+          Welcome to Nirvaya
         </h1>
         <p className="text-sm text-muted-foreground">
           Complete your metabolic health profile. Voice input is optional with

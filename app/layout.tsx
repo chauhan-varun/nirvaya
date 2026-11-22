@@ -5,8 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 
 export const metadata: Metadata = {
   title: {
-    default: "SugarGuard CareBridge | Your next step to better health",
-    template: "%s | SugarGuard CareBridge",
+    default: "Nirvaya | Your next step to better health",
+    template: "%s | Nirvaya",
   },
   description:
     "An English-first metabolic-health companion with optional Indian-language translation. Understand your risk, build daily habits, and bring your care circle closer. Interface preview only.",
